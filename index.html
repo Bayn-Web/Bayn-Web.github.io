@@ -9,12 +9,44 @@
             margin: 0;
             padding: 0;
         }
+
+        .text-animation {
+            filter: url(#filter)
+        }
     </style>
 </head>
 
 <body>
-    <text-animation></text-animation>
+    <svg style="display: none;">
+        <defs>
+            <filter id="filter" x="-20%" y="-20%" width="140%" height="140%" filterUnits="objectBoundingBox"
+                primitiveUnits="userSpaceOnUse" color-interpolation-filters="linearRGB">
+                <feTurbulence type="fractalNoise" baseFrequency="0 0.4" numOctaves="2" seed="2" stitchTiles="stitch"
+                    x="0%" y="0%" width="100%" height="100%" result="turbulence1" />
+                <feDisplacementMap id="displacementMap" in="SourceGraphic" in2="turbulence1" scale="320"
+                    xChannelSelector="R" yChannelSelector="B" x="0%" y="0%" width="100%" height="100%"
+                    result="displacementMap3" />
+            </filter>
+        </defs>
+    </svg>
+    <div style="filter:url(#filter)">
+        <text-animation id="text-animation"></text-animation>
+    </div>
 </body>
-
+<script>
+    let reduce = 2;
+    let n = () => {
+        requestAnimationFrame(() => {
+            document.querySelector('#displacementMap').setAttribute('scale', +document.querySelector('#displacementMap').getAttribute('scale') - reduce);
+            reduce = reduce * 1.1;
+            if (+document.querySelector('#displacementMap').getAttribute('scale') > 0) {
+                n();
+            } else {
+                document.querySelector('#displacementMap').setAttribute('scale', 0);
+            }
+        });
+    }
+    n();
+</script>
 
 </html>
