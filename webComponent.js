@@ -11,7 +11,7 @@ customElements.define('text-animation', class extends HTMLElement {
         link.setAttribute('href', './webComponent.css');
         div1.setAttribute('class', 'container')
         h1.setAttribute('class', 'text');
-        h1.setAttribute('data-text', 'Mix Blend Mode');
+        h1.setAttribute('data-text', this.getAttribute('text'));
         h1.textContent = h1.getAttribute('data-text');
         div2.setAttribute('class', 'wbk');
         div1.appendChild(h1);
