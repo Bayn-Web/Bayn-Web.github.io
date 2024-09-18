@@ -13,6 +13,15 @@
         .text-animation {
             filter: url(#filter)
         }
+
+        #lottie {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            right: 0;
+            margin: 1em;
+            height: 160px;
+        }
     </style>
 </head>
 
@@ -30,7 +39,7 @@
         </defs>
     </svg>
     <div style="filter:url(#filter)">
-        <text-animation id="text-animation" text="make by heart"></text-animation>
+        <text-animation id="text-animation" text="Hello World"></text-animation>
     </div>
     <div style="width:80vw;margin-left: 10vw;">
         <script src="https://giscus.app/client.js" data-repo="Bayn-Web/Bayn-Web.github.io" data-repo-id="R_kgDOKzjs1Q"
@@ -39,9 +48,38 @@
             data-theme="preferred_color_scheme" data-lang="zh-CN" crossorigin="anonymous" async>
             </script>
     </div>
+    <div id="lottie"></div>
 </body>
+<script type="importmap">
+    {
+        "imports": {
+          "lottie": "https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/esm/lottie_svg.min.js"
+        }
+    }
+</script>
 <script type="module" src="https://esm.sh/giscus"></script>
-<script>
+<script type="module">
+    import lottie from "lottie"
+
+    let isLiked = false;
+    const lottieDom = document.getElementById('lottie');
+    const animation = lottie.loadAnimation({
+        container: lottieDom, // Required
+        path: 'FadeLike.json', // Required
+        renderer: 'svg', // Required
+        loop: false, // Optional
+        autoplay: false, // Optional
+        name: "Hello World", // Name for future reference. Optional.
+    });
+    lottieDom.addEventListener('click', () => {
+        animation.play();
+        isLiked ? animation.setDirection(1) : animation.setDirection(-1);
+        isLiked = !isLiked;
+        animation.play();
+    });
+    // trigger a first click bug earlier
+    lottieDom.click();
+    
     let reduce = 2;
     let n = () => {
         requestAnimationFrame(() => {
