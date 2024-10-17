@@ -10,6 +10,7 @@
         }
 
         body {
+            overflow-x: hidden;
             margin: 0;
             padding: 0;
         }
@@ -25,6 +26,7 @@
             right: 0;
             margin: 1em;
             height: 160px;
+            z-index: 2;
         }
 
         .webgl {
@@ -49,9 +51,13 @@
             </filter>
         </defs>
     </svg>
-    <div style="filter:url(#filter)">
-        <text-animation id="text-animation" text="Hello World"></text-animation>
+    <div class="ani-area">
+        <div class="hero-page" style="filter:url(#filter)">
+            <text-animation id="text-animation" text="Hello World"></text-animation>
+        </div>
+        <div id="lottie"></div>
     </div>
+    <canvas style="height: 100px;width: 100px;z-index: 3;" class="webgl"></canvas>
     <div style="width:80vw;margin-left: 10vw;">
         <script src="https://giscus.app/client.js" data-repo="Bayn-Web/Bayn-Web.github.io" data-repo-id="R_kgDOKzjs1Q"
             data-category="Announcements" data-category-id="DIC_kwDOKzjs1c4CgvcN" data-mapping="pathname"
@@ -59,8 +65,6 @@
             data-theme="preferred_color_scheme" data-lang="zh-CN" crossorigin="anonymous" async>
             </script>
     </div>
-    <div id="lottie"></div>
-    <canvas style="height: 1000px;width: 1000px;" class="webgl"></canvas>
 </body>
 <script type="importmap">
     {
@@ -164,10 +168,23 @@
         const mesh = new THREE.Mesh(geometry, material);
         scene.add(mesh);
         const slowSmokeRate = 0.3;
+        let shrink = 1;
         const tick = () => {
-            imouse.set(mouse.x * slowSmokeRate, (mouse.y / 5) * slowSmokeRate)
+            const realHeight = mouse.y + scrollY;
+            if (realHeight >= innerHeight) {
+                if (shrink < 0.01) {
+                    requestAnimationFrame(tick);
+                    return;
+                }
+                mainCanvas.style.transform = mainCanvas.style.transform + ` scale(${shrink * 0.95})`;
+                shrink = shrink * 0.95;
+                requestAnimationFrame(tick);
+                return;
+            }
+            shrink = 1;
+            imouse.set(mouse.x * slowSmokeRate, (realHeight / 5) * slowSmokeRate)
             uniforms.iMouse.value = imouse;
-            mainCanvas.style.transform = `translate(${mouse.x - arc.w / 2}px, ${(mouse.y + window.scrollY) - arc.h / 2}px)`;
+            mainCanvas.style.transform = `translate(${mouse.x - arc.w / 2}px, ${(realHeight) - arc.h / 2}px)`;
             uniforms.iTime.value = performance.now() / 1000 % 1000;
             material.uniforms = uniforms;
             if (flag) {
