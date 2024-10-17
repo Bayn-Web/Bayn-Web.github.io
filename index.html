@@ -5,6 +5,10 @@
     <title>Document</title>
     <script defer type="text/javascript" src="./webComponent.js"></script>
     <style>
+        * {
+            cursor: none;
+        }
+
         body {
             margin: 0;
             padding: 0;
@@ -21,6 +25,13 @@
             right: 0;
             margin: 1em;
             height: 160px;
+        }
+
+        .webgl {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
         }
     </style>
 </head>
@@ -49,17 +60,22 @@
             </script>
     </div>
     <div id="lottie"></div>
+    <canvas style="height: 1000px;width: 1000px;" class="webgl"></canvas>
 </body>
 <script type="importmap">
     {
         "imports": {
-          "lottie": "https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/esm/lottie_svg.min.js"
+          "lottie": "https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/esm/lottie_svg.min.js",
+          "three": "https://cdn.jsdelivr.net/npm/three@0.159.0/build/three.module.js",
+          "three/examples/jsm/controls/OrbitControls.js": "https://cdn.jsdelivr.net/npm/three@0.159.0/examples/jsm/controls/OrbitControls.js"
         }
     }
 </script>
 <script type="module" src="https://esm.sh/giscus"></script>
 <script type="module">
     import lottie from "lottie"
+    import { getThreeForm } from './getThreeForm.js';
+    import * as THREE from 'three';
 
     let isLiked = false;
     const lottieDom = document.getElementById('lottie');
@@ -79,7 +95,7 @@
     });
     // trigger a first click bug earlier
     lottieDom.click();
-    
+
     let reduce = 2;
     let n = () => {
         requestAnimationFrame(() => {
@@ -93,6 +109,75 @@
         });
     }
     n();
+
+    const mainCanvas = document.querySelector('.webgl');
+    const {
+        scene,
+        camera,
+        renderer
+    } = getThreeForm(mainCanvas, true);
+    const ambLight = new THREE.AmbientLight(0xffffff, 1)
+    scene.add(ambLight);
+    var imouse = new THREE.Vector2(0, 0);
+    const arc = {
+        w: mainCanvas.clientWidth,
+        h: mainCanvas.clientHeight
+    };
+    const mouse = {
+        x: 0,
+        y: 0
+    }
+    addEventListener("mousemove", (e) => {
+        mouse.x = e.x;
+        mouse.y = e.y;
+    })
+    const uniforms = {
+        resolution: {
+            value: new THREE.Vector2(window.innerWidth, window.innerHeight)
+        },
+        iTime: {
+            type: "f",
+            value: 1.0
+        },
+        iResolution: {
+            type: "v3",
+            value: new THREE.Vector3(mainCanvas.width, mainCanvas.height, 1)
+        },
+        iMouse: {
+            type: "v2",
+            value: imouse
+        }
+    };
+    camera.position.set(0, 0, 0.5)
+    let glslText, material;
+    let flag = false;
+    (async () => {
+        glslText = await fetch('./smoke.glsl')
+            .then(response => response.text())
+        material = new THREE.ShaderMaterial({
+            uniforms: uniforms,
+            fragmentShader: glslText,
+            transparent: true,
+            depthTest: false,
+        });
+        const geometry = new THREE.PlaneGeometry(2, 1);
+        const mesh = new THREE.Mesh(geometry, material);
+        scene.add(mesh);
+        const slowSmokeRate = 0.3;
+        const tick = () => {
+            imouse.set(mouse.x * slowSmokeRate, (mouse.y / 5) * slowSmokeRate)
+            uniforms.iMouse.value = imouse;
+            mainCanvas.style.transform = `translate(${mouse.x - arc.w / 2}px, ${(mouse.y + window.scrollY) - arc.h / 2}px)`;
+            uniforms.iTime.value = performance.now() / 1000 % 1000;
+            material.uniforms = uniforms;
+            if (flag) {
+                renderer.render(scene, camera);
+            }
+            flag = !flag;
+            requestAnimationFrame(tick);
+        }
+        tick()
+    })()
 </script>
 
 </html>

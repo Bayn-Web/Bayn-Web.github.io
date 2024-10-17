@@ -1,7 +1,6 @@
 .text {
     user-select: none;
     mix-blend-mode: difference;
-    cursor: pointer;
     z-index: 3;
     text-wrap: nowrap;
     color: #fff;
